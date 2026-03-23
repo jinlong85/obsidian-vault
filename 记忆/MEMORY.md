@@ -16,14 +16,14 @@
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
 │  MSI 台式机      │ ← ── → │    GitHub       │ ← ── → │  YOGA Pro16 笔记本 │
-│  (WSL2)        │  push   │   (中转)        │  push   │  (WSL2)        │
-│                │  pull   │                 │  pull   │                │
+│  (Windows)      │  push   │   (中转)        │  push   │  (Windows)      │
+│  Obsidian       │  pull   │                 │  pull   │  Obsidian       │
 └─────────────────┘         └─────────────────┘         └─────────────────┘
 ```
 
 **双向同步机制**：
-- 两台设备都 push + pull
-- 每 5 分钟自动同步
+- 两台设备的 Obsidian 都在 **Windows系统** 运行
+- 通过 Obsidian Git 插件自动同步
 - 通过 GitHub 作为中转站
 
 ---
@@ -48,8 +48,10 @@
 
 | 设备 | 路径 | remote URL | 认证方式 |
 |------|------|------------|----------|
-| 台式机 | `C:\Users\JINLONG\obsidian-vault` | `https://github.com/jinlong85/obsidian-vault.git` | HTTPS |
-| 笔记本 | `C:\Users\JINLONG\obsidian-vault` | `https://github.com/jinlong85/obsidian-vault.git` | HTTPS |
+| MSI台式机 | `C:\Users\JINLONG\obsidian-vault` (Windows) | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
+| YOGA Pro16笔记本 | `C:\Users\JINLONG\obsidian-vault` (Windows) | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
+
+**重要**：Obsidian 安装在 **Windows系统**，不是WSL2。通过 Obsidian Git 插件同步 MD 文件。
 
 ---
 
@@ -107,9 +109,9 @@ C:\Users\JINLONG\obsidian-vault\.obsidian\plugins\obsidian-git\
   "commitMessage": "vault backup: {{date}}",
   "autoCommitMessage": "vault backup: {{date}}",
   "commitDateFormat": "YYYY-MM-DD HH:mm:ss",
-  "autoSaveInterval": 5,
-  "autoPushInterval": 10,
-  "autoPullInterval": 10,
+  "autoSaveInterval": 1,
+  "autoPushInterval": 2,
+  "autoPullInterval": 2,
   "autoPullOnBoot": true,
   "disablePush": false,
   "pullBeforePush": true,
@@ -119,7 +121,7 @@ C:\Users\JINLONG\obsidian-vault\.obsidian\plugins\obsidian-git\
   "updateSubmodules": false,
   "syncMethod": "merge",
   "customMessageOnAutoBackup": false,
-  "autoBackupAfterFileChange": false,
+  "autoBackupAfterFileChange": true,
   "treeStructure": false,
   "refreshSourceControl": true,
   "basePath": "",
@@ -131,6 +133,17 @@ C:\Users\JINLONG\obsidian-vault\.obsidian\plugins\obsidian-git\
   "showBranchStatusBar": true
 }
 ```
+
+**Windows SSH配置** (`C:\Users\JINLONG\.ssh\config`)：
+```
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    AddKeysToAgent yes
+```
+
+**Windows SSH密钥位置**：`C:\Users\JINLONG\.ssh\id_ed25519`
 
 ---
 
@@ -194,11 +207,13 @@ chmod +x ~/sync-all.sh
 
 ### 6. Obsidian Vault
 
-#### 6.1 Clone vault
+#### 6.1 安装 Obsidian 和 Clone vault
 
+1. 在 Windows 安装 Obsidian：https://obsidian.md/download
+2. Clone vault 到 Windows：
 ```powershell
 cd C:\Users\JINLONG
-git clone https://github.com/jinlong85/obsidian-vault.git
+git clone git@github.com:jinlong85/obsidian-vault.git
 ```
 
 #### 6.2 安装 Obsidian Git 插件
@@ -212,15 +227,32 @@ git clone https://github.com/jinlong85/obsidian-vault.git
 
 3. 启用插件：设置 → 社区插件 → 启用 Obsidian Git
 
-#### 6.3 配置插件
+#### 6.3 配置 SSH（重要！）
+
+在 `C:\Users\JINLONG\.ssh\config` 添加：
+```
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    AddKeysToAgent yes
+```
+
+从WSL2复制私钥：
+```bash
+cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
+```
+
+#### 6.4 配置插件
 
 修改 `data.json`：
 ```json
 {
-  "autoSaveInterval": 5,
-  "autoPushInterval": 10,
-  "autoPullInterval": 10,
+  "autoSaveInterval": 1,
+  "autoPushInterval": 2,
+  "autoPullInterval": 2,
   "autoPullOnBoot": true,
+  "autoBackupAfterFileChange": true,
   "differentIntervalCommitAndPush": false
 }
 ```
@@ -233,7 +265,7 @@ git clone https://github.com/jinlong85/obsidian-vault.git
 |------|------|------|
 | CC_TEST 项目 | `git@github.com:jinlong85/cc_test.git` | Node.js 脚本项目 |
 | Claude Code 配置 | `git@github.com:jinlong85/claude-config.git` | Claude Code 设置同步 |
-| Obsidian Vault | `https://github.com/jinlong85/obsidian-vault.git` | 知识库同步 |
+| Obsidian Vault | `git@github.com:jinlong85/obsidian-vault.git` | 知识库同步（Windows系统） |
 
 ---
 
@@ -279,12 +311,20 @@ git remote -v
 
 **现象**：`Host key verification failed` 或 `Permission denied (publickey)`
 
-**原因**：插件使用 SSH 但没有配置 SSH key
+**原因**：Windows 缺少 SSH 私钥或未配置 SSH config
 
 **解决方案**：
 ```bash
-cd vault路径
-git remote set-url origin https://github.com/用户名/仓库名.git
+# 1. 从WSL2复制私钥到Windows
+cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
+
+# 2. 创建SSH config
+# 在 C:\Users\JINLONG\.ssh\config 中添加：
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    AddKeysToAgent yes
 ```
 
 ---
@@ -323,8 +363,8 @@ git config --global user.email "jinlong85@users.noreply.github.com"
 
 ## 十、重要规则
 
-1. **Obsidian Vault 统一使用 HTTPS** - 避免 SSH key 问题
-2. **WSL 项目用 SSH** - CC_TEST、claude-config 用 SSH
+1. **Obsidian 在 Windows 系统运行** - 不是WSL2，通过 Obsidian Git 插件同步
+2. **所有仓库统一使用 SSH** - 包括 Obsidian Vault（需要配置 SSH key）
 3. **先配置 Git 用户信息** - `git config --global user.name/email`
-4. **定时任务确保自动同步** - crontab 设置
+4. **Windows 需要配置 SSH config** - `C:\Users\JINLONG\.ssh\config`
 5. **第三台电脑部署按第六节流程** - 确保不遗漏步骤
