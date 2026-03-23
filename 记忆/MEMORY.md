@@ -7,7 +7,7 @@
 | 设备 | 角色 | CC_TEST 路径 | Obsidian Vault 路径 |
 |------|------|--------------|---------------------|
 | MSI 台式机 | 宿舍主力机 | `/home/jinlong/CC_TEST` | `C:\Users\JINLONG\obsidian-vault` |
-| YOGA Pro16 笔记本 | 办公室 | `/home/jinlong/cc_test` | `C:\Users\JINLONG\obsidian-vault` |
+| YOGA Pro16 笔记本 | 办公室 | `/home/jinlong/CC_TEST` | `C:\Users\JINLONG\obsidian-vault` |
 
 ---
 
@@ -33,8 +33,8 @@
 
 | 设备 | 路径 | remote URL | 认证方式 |
 |------|------|------------|----------|
-| 台式机 | `/home/jinlong/CC_TEST` | `git@github.com:jinlong85/cc_test.git` | SSH |
-| 笔记本 | `/home/jinlong/cc_test` | `git@github.com:jinlong85/cc_test.git` | SSH |
+| 台式机 | `/home/jinlong/CC_TEST` | `git@github.com:jinlong85/CC_TEST.git` | SSH |
+| 笔记本 | `/home/jinlong/CC_TEST` | `git@github.com:jinlong85/CC_TEST.git` | SSH |
 
 ### Claude Code 配置
 
@@ -65,7 +65,7 @@
 #!/bin/bash
 # CC_TEST 项目双向同步
 cd ~/CC_TEST  # 台式机
-# cd ~/cc_test  # 笔记本
+# cd ~/CC_TEST  # 笔记本
 git pull origin main 2>/dev/null
 if [ -n "$(git status --porcelain)" ]; then
     git add .
@@ -176,7 +176,7 @@ cat ~/.ssh/id_ed25519.pub
 ### 4. Clone 项目
 
 ```bash
-git clone git@github.com:jinlong85/cc_test.git ~/cc_test
+git clone git@github.com:jinlong85/CC_TEST.git ~/CC_TEST
 git clone git@github.com:jinlong85/claude-config.git ~/.claude-config
 cp ~/.claude-config/settings.json ~/.claude/settings.json
 ```
@@ -186,7 +186,7 @@ cp ~/.claude-config/settings.json ~/.claude/settings.json
 ```bash
 cat > ~/sync-all.sh << 'EOF'
 #!/bin/bash
-cd ~/cc_test
+cd ~/CC_TEST
 git pull origin main 2>/dev/null
 if [ -n "$(git status --porcelain)" ]; then
     git add .
@@ -246,7 +246,7 @@ Host github.com
 
 | 仓库 | 地址 | 用途 |
 |------|------|------|
-| CC_TEST 项目 | `git@github.com:jinlong85/cc_test.git` | Node.js 脚本项目 |
+| CC_TEST 项目 | `git@github.com:jinlong85/CC_TEST.git` | Node.js 脚本项目 |
 | Claude Code 配置 | `git@github.com:jinlong85/claude-config.git` | Claude Code 设置同步 |
 | Obsidian Vault | `git@github.com:jinlong85/obsidian-vault.git` | 知识库同步 |
 
