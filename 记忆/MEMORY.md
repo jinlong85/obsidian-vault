@@ -22,8 +22,7 @@
 ```
 
 **双向同步机制**：
-- 两台设备的 Obsidian 都在 **Windows系统** 运行
-- 通过 Obsidian Git 插件自动同步
+- Obsidian 在 **Windows系统** 运行，通过 Git 插件同步
 - 通过 GitHub 作为中转站
 
 ---
@@ -44,14 +43,14 @@
 | 台式机 | `~/.claude-config` | `git@github.com:jinlong85/claude-config.git` | SSH |
 | 笔记本 | `~/.claude-config` | `git@github.com:jinlong85/claude-config.git` | SSH |
 
-### Obsidian Vault
+### Obsidian Vault（Windows）
 
 | 设备 | 路径 | remote URL | 认证方式 |
 |------|------|------------|----------|
-| MSI台式机 | `C:\Users\JINLONG\obsidian-vault` (Windows) | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
-| YOGA Pro16笔记本 | `C:\Users\JINLONG\obsidian-vault` (Windows) | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
+| 台式机 | `C:\Users\JINLONG\obsidian-vault` | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
+| 笔记本 | `C:\Users\JINLONG\obsidian-vault` | `git@github.com:jinlong85/obsidian-vault.git` | SSH |
 
-**重要**：Obsidian 安装在 **Windows系统**，不是WSL2。通过 Obsidian Git 插件同步 MD 文件。
+**Obsidian 运行在 Windows**，通过 Obsidian Git 插件同步，不是 WSL2。
 
 ---
 
@@ -134,7 +133,8 @@ C:\Users\JINLONG\obsidian-vault\.obsidian\plugins\obsidian-git\
 }
 ```
 
-**Windows SSH配置** (`C:\Users\JINLONG\.ssh\config`)：
+### Windows SSH 配置
+`C:\Users\JINLONG\.ssh\config`：
 ```
 Host github.com
     HostName github.com
@@ -143,7 +143,10 @@ Host github.com
     AddKeysToAgent yes
 ```
 
-**Windows SSH密钥位置**：`C:\Users\JINLONG\.ssh\id_ed25519`
+从 WSL2 复制私钥：
+```bash
+cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
+```
 
 ---
 
@@ -162,7 +165,7 @@ git config --global user.name "jinlong85"
 git config --global user.email "jinlong85@users.noreply.github.com"
 ```
 
-### 3. 配置 SSH Key（用于 CC_TEST 和 claude-config）
+### 3. 配置 SSH Key
 
 ```bash
 ssh-keygen -t ed25519 -C "jinlong85" -f ~/.ssh/id_ed25519 -N ""
@@ -205,12 +208,10 @@ chmod +x ~/sync-all.sh
 (crontab -l 2>/dev/null; echo "*/5 * * * * /home/jinlong/sync-all.sh") | crontab -
 ```
 
-### 6. Obsidian Vault
+### 6. Obsidian Vault（Windows）
 
 #### 6.1 安装 Obsidian 和 Clone vault
 
-1. 在 Windows 安装 Obsidian：https://obsidian.md/download
-2. Clone vault 到 Windows：
 ```powershell
 cd C:\Users\JINLONG
 git clone git@github.com:jinlong85/obsidian-vault.git
@@ -218,43 +219,25 @@ git clone git@github.com:jinlong85/obsidian-vault.git
 
 #### 6.2 安装 Obsidian Git 插件
 
-1. 下载插件文件到 vault 的 `.obsidian\plugins\obsidian-git\` 目录：
-   - manifest.json
-   - main.js
-   - styles.css
+手动下载插件到 `.obsidian\plugins\obsidian-git\`：
+- manifest.json
+- main.js
+- styles.css
 
-2. 启动 Obsidian，打开 vault
+#### 6.3 配置 SSH
 
-3. 启用插件：设置 → 社区插件 → 启用 Obsidian Git
+从 WSL2 复制私钥到 Windows：
+```bash
+cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
+```
 
-#### 6.3 配置 SSH（重要！）
-
-在 `C:\Users\JINLONG\.ssh\config` 添加：
+创建 `C:\Users\JINLONG\.ssh\config`：
 ```
 Host github.com
     HostName github.com
     User git
     IdentityFile ~/.ssh/id_ed25519
     AddKeysToAgent yes
-```
-
-从WSL2复制私钥：
-```bash
-cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
-```
-
-#### 6.4 配置插件
-
-修改 `data.json`：
-```json
-{
-  "autoSaveInterval": 1,
-  "autoPushInterval": 2,
-  "autoPullInterval": 2,
-  "autoPullOnBoot": true,
-  "autoBackupAfterFileChange": true,
-  "differentIntervalCommitAndPush": false
-}
 ```
 
 ---
@@ -265,18 +248,13 @@ cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
 |------|------|------|
 | CC_TEST 项目 | `git@github.com:jinlong85/cc_test.git` | Node.js 脚本项目 |
 | Claude Code 配置 | `git@github.com:jinlong85/claude-config.git` | Claude Code 设置同步 |
-| Obsidian Vault | `git@github.com:jinlong85/obsidian-vault.git` | 知识库同步（Windows系统） |
+| Obsidian Vault | `git@github.com:jinlong85/obsidian-vault.git` | 知识库同步 |
 
 ---
 
 ## 八、验证命令
 
-### 检查同步状态
-```bash
-bash ~/sync-all.sh
-```
-
-### 检查 GitHub SSH 连接
+### 检查 SSH 连接
 ```bash
 ssh -T git@github.com
 ```
@@ -284,87 +262,43 @@ ssh -T git@github.com
 ### 检查 vault remote
 ```bash
 git remote -v
-# 应该显示 https://github.com/jinlong85/obsidian-vault.git
+# 应显示：git@github.com:jinlong85/obsidian-vault.git
 ```
 
----
-
-## 九、常见问题与解决方案
-
-### 问题 1: Windows Git SSH 认证失败
-
-**现象**：`git@github.com: Permission denied (publickey)`
-
-**原因**：Windows Git 没有配置 SSH key
-
-**解决方案**：WSL 用 SSH，Windows vault 用 HTTPS
-
----
-
-### 问题 2: Obsidian Git 插件搜不到
-
-**解决方案**：手动下载插件文件到 vault 的 `.obsidian\plugins\obsidian-git\` 目录
-
----
-
-### 问题 3: Obsidian Git 插件 SSH 认证失败
-
-**现象**：`Host key verification failed` 或 `Permission denied (publickey)`
-
-**原因**：Windows 缺少 SSH 私钥或未配置 SSH config
-
-**解决方案**：
+### 检查同步状态
 ```bash
-# 1. 从WSL2复制私钥到Windows
-cp ~/.ssh/id_ed25519 /mnt/c/Users/JINLONG/.ssh/
-
-# 2. 创建SSH config
-# 在 C:\Users\JINLONG\.ssh\config 中添加：
-Host github.com
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/id_ed25519
-    AddKeysToAgent yes
+bash ~/sync-all.sh
 ```
 
 ---
 
-### 问题 4: PowerShell Git 代理问题
+## 九、重要规则
 
-**现象**：`Failed to connect to github.com port 443`
-
-**解决方案**：
-```powershell
-git config --global http.proxy http://127.0.0.1:9999
-git config --global https.proxy http://127.0.0.1:9999
-```
+1. **所有仓库统一使用 SSH**
+2. **Obsidian 在 Windows 运行**，通过 Git 插件同步，不是 WSL2
+3. **先配置 Git 用户信息**：`git config --global user.name/email`
+4. **Windows 需要 SSH config**：否则 Obsidian Git 插件认证失败
+5. **第三台电脑部署按第六节流程**
 
 ---
 
-### 问题 5: Git 用户信息未配置
+## 十、常见问题
 
-**现象**：`Author identity unknown`
+### 分支分叉（diverged）
 
-**解决方案**：
+**现象**：`git push` 被拒绝，提示 `! [rejected] main -> main (fetch first)`
+
+**解决**（保留本地版本）：
 ```bash
-git config --global user.name "jinlong85"
-git config --global user.email "jinlong85@users.noreply.github.com"
+git reset --hard origin/main && git push --force
 ```
 
----
+### 文件显示 modified 但无内容变化
 
-### 问题 6: autoPullOnBoot 为 false
+通常是换行符（CRLF/LF）或文件权限（100644/100755）差异，无实质内容不同。
 
-**现象**：重启 Obsidian 后不自动拉取
+### SSH 认证失败
 
-**解决方案**：确保 `data.json` 中 `"autoPullOnBoot": true`
-
----
-
-## 十、重要规则
-
-1. **Obsidian 在 Windows 系统运行** - 不是WSL2，通过 Obsidian Git 插件同步
-2. **所有仓库统一使用 SSH** - 包括 Obsidian Vault（需要配置 SSH key）
-3. **先配置 Git 用户信息** - `git config --global user.name/email`
-4. **Windows 需要配置 SSH config** - `C:\Users\JINLONG\.ssh\config`
-5. **第三台电脑部署按第六节流程** - 确保不遗漏步骤
+1. 检查私钥是否存在：`ls ~/.ssh/id_ed25519`
+2. 检查 SSH config 是否正确配置
+3. 验证连接：`ssh -T git@github.com`
